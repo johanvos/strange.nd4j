@@ -195,7 +195,6 @@ public class Nd4jQuantumExecutionEnvironment implements QuantumExecutionEnvironm
         Thread t = new Thread(() -> result.accept(runProgram(p)));
         t.start();
     }
-
          
     private static Complex[][] fastmmul(Complex[][] a, Complex[][] b) {
         long l0 = System.currentTimeMillis();
@@ -248,7 +247,6 @@ public class Nd4jQuantumExecutionEnvironment implements QuantumExecutionEnvironm
         for (int i = 0; i < acol; i++) {
             for (int j = 0; j < brow; j++) {
                 answer[i][j] = new Complex(n_r.getDouble(i, j), n_i.getDouble(i, j));
-
             }
         }
         return answer;
@@ -293,7 +291,6 @@ public class Nd4jQuantumExecutionEnvironment implements QuantumExecutionEnvironm
     }
     
     private Complex[] getNextProbability(List<Gate> gates, Complex[] v) {
-        System.err.println("Get next probability");
          Gate gate = gates.get(0);
 
         Complex[][] matrix = gate.getMatrix(this);
