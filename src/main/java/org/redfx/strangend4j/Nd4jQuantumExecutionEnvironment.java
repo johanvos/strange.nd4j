@@ -117,7 +117,60 @@ public class Nd4jQuantumExecutionEnvironment implements QuantumExecutionEnvironm
     
     public Complex[][] mmul(Complex[][] a, Complex[][] b) {
         System.err.println("ND4J mul");
-        return Complex.mmul(a, b);
+            long l0 = System.currentTimeMillis();
+        int arow = a.length;
+        int acol = a[0].length;
+        int brow = b.length;
+        int bcol = b[0].length;
+        int am = 0;
+        if (acol != brow) {
+            throw new RuntimeException("#cols a " + acol + " != #rows b " + brow);
+        }
+        Complex[][] answer = new Complex[arow][bcol];
+        double[][] ar = new double[arow][acol];
+        double[][] ai = new double[arow][acol];
+        double[][] br = new double[brow][bcol];
+        double[][] bi = new double[brow][bcol];
+        for (int i = 0; i < arow; i++) {
+            for (int j = 0; j < bcol; j++) {
+                Complex el = new Complex(0., 0.);
+                double newr = 0;
+                double newi = 0;
+                boolean zero = true;
+                for (int k = 0; k < acol; k++) {
+                    if (j == 0) {
+                        ar[i][k] = a[i][k].r;
+                        ai[i][k] = a[i][k].i;
+                    }
+                    if (i == 0) {
+                        br[k][j] = b[k][j].r;
+                        bi[k][j] = b[k][j].i;
+                    }
+                }
+                if (zero) {
+                    answer[i][j] = Complex.ZERO;
+                } else {
+                    answer[i][j] = Complex.ZERO;
+                }
+
+
+            }
+        }
+        long l1 = System.currentTimeMillis();
+        INDArray n_ar = Nd4j.create(ar);
+        INDArray n_ai = Nd4j.create(ai);
+        INDArray n_br = Nd4j.create(br);
+        INDArray n_bi = Nd4j.create(bi);
+        INDArray n_r = n_ar.mmul(n_br).sub(n_ai.mmul(n_bi));
+        INDArray n_i = n_ai.mmul(n_br).add(n_ar.mmul(n_bi));
+
+        for (int i = 0; i < acol; i++) {
+            for (int j = 0; j < brow; j++) {
+                answer[i][j] = new Complex(n_r.getDouble(i, j), n_i.getDouble(i, j));
+
+            }
+        }
+        return answer;
     }
     
     private double[] calculateQubitStatesFromVector(Complex[] vectorresult) {
@@ -235,14 +288,15 @@ public class Nd4jQuantumExecutionEnvironment implements QuantumExecutionEnvironm
         return answer;
     }
 
-    public static Complex[] calculateNewState(List<Gate> gates, Complex[] vector, int length) {
+    public Complex[] calculateNewState(List<Gate> gates, Complex[] vector, int length) {
         return getNextProbability(getAllGates(gates, length), vector);
     }
     
-    private static Complex[] getNextProbability(List<Gate> gates, Complex[] v) {
+    private Complex[] getNextProbability(List<Gate> gates, Complex[] v) {
+        System.err.println("Get next probability");
          Gate gate = gates.get(0);
 
-        Complex[][] matrix = gate.getMatrix();
+        Complex[][] matrix = gate.getMatrix(this);
         int size = v.length;
 
         if (gates.size() > 1) {
